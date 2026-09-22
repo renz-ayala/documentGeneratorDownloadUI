@@ -1,1 +1,10 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+@plugin "daisyui"{
+  themes: black, light;
+}
+
+.btn-loading {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: wait;
+}
