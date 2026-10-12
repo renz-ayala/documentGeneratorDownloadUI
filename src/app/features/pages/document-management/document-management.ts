@@ -1,8 +1,9 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DocumentService } from '../../../core/service/document-service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ThemeService } from '../../../core/service/theme-service';
 import { BtnLoading } from '../../../shared/directives/btn-loading';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-document-management',
@@ -24,7 +25,9 @@ export class DocumentManagement {
   });
 
   constructor() {
-    this.htmlContent.set(this.inputHtml());
+    effect(() => {
+      this.htmlContent.set(this.inputHtml());
+    });
   }
 
   onContentChange(event: Event) {
@@ -33,27 +36,29 @@ export class DocumentManagement {
   }
 
   exportDocument(format: 'pdf' | 'docx') {
-    const content = '';
+    const content = this.htmlContent();
 
     if (!content) {
       return;
     }
 
-    const apiUri$ =
-      format === 'pdf'
-        ? this.documentService.exportToPdf(content)
-        : this.documentService.exportToPdf(content);
+    this.isExporting.set(true);
 
-    apiUri$.subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `document.${format}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {},
-    });
+    const apiUri$ = format === 'pdf'
+        ? this.documentService.exportToPdf(content)
+        : this.documentService.exportToDocx(content);
+
+    apiUri$.pipe(finalize(() => this.isExporting.set(false)))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `document.${format}`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (e) => console.error('Unable to download document', e),
+      });
   }
 }
