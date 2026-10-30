@@ -11,7 +11,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ThemeService } from '../../../core/services/theme-service';
 import { BtnLoading } from '../../../shared/directives/btn-loading';
 import { finalize } from 'rxjs';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-document-management',
