@@ -1,18 +1,17 @@
 import {
   Component,
   computed,
-  effect,
   inject,
-  input,
   signal,
   ChangeDetectionStrategy,
   ViewEncapsulation,
 } from '@angular/core';
-import { DocumentService } from '../../../core/service/document-service';
+import { DocumentService } from '../../../core/services/document-service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ThemeService } from '../../../core/service/theme-service';
+import { ThemeService } from '../../../core/services/theme-service';
 import { BtnLoading } from '../../../shared/directives/btn-loading';
 import { finalize } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-document-management',
@@ -27,9 +26,7 @@ export class DocumentManagement {
   documentService = inject(DocumentService);
   themeService = inject(ThemeService);
 
-  inputHtml = input('');
   htmlContent = signal('');
-
   isExporting = signal(false);
 
   safePreviewHtml = computed<SafeHtml>(() => {
@@ -37,9 +34,11 @@ export class DocumentManagement {
   });
 
   constructor() {
-    effect(() => {
-      this.htmlContent.set(this.inputHtml());
-    });
+    const state = history.state;
+
+    if (state && state.htmlContent) {
+      this.htmlContent.set(state.htmlContent);
+    }
   }
 
   onContentChange(event: Event) {
